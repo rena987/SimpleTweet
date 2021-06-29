@@ -6,6 +6,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
@@ -28,6 +30,7 @@ public class TimelineActivity extends AppCompatActivity {
     List<Tweet> tweets;
     TweetsAdapter tweetsAdapter;
     LinearLayoutManager linearLayoutManager;
+    Button btnLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +38,7 @@ public class TimelineActivity extends AppCompatActivity {
         setContentView(R.layout.activity_timeline);
 
         tweets = new ArrayList<>();
+        btnLogout = findViewById(R.id.btnLogout);
         client = TwitterApp.getRestClient(this);
 
         // Find the recycler view
@@ -47,6 +51,13 @@ public class TimelineActivity extends AppCompatActivity {
         rvTweets.setLayoutManager(linearLayoutManager);
 
         populateHomeTimeline();
+
+        btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onLogoutButton();
+            }
+        });
 
 
     }
@@ -70,5 +81,10 @@ public class TimelineActivity extends AppCompatActivity {
                 Log.d(TAG, "Fetching Home Timeline Failure");
             }
         });
+    }
+
+    private void onLogoutButton() {
+        client.clearAccessToken(); // forget who's logged in
+        finish(); // navigate backwards to Login screen
     }
 }
