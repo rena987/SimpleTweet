@@ -4,6 +4,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -32,8 +33,9 @@ public class TimelineActivity extends AppCompatActivity {
 
     public static final int REQUEST_CODE = 23;
     public static final String TAG = "TimelineActivity";
-    TwitterClient client;
 
+    TwitterClient client;
+    SwipeRefreshLayout swipeRefreshLayout;
     RecyclerView rvTweets;
     List<Tweet> tweets;
     TweetsAdapter tweetsAdapter;
@@ -47,6 +49,7 @@ public class TimelineActivity extends AppCompatActivity {
 
         tweets = new ArrayList<>();
         btnLogout = findViewById(R.id.btnLogout);
+        swipeRefreshLayout = findViewById(R.id.swipeContainer);
         client = TwitterApp.getRestClient(this);
 
         // Find the recycler view
@@ -60,6 +63,20 @@ public class TimelineActivity extends AppCompatActivity {
 
         populateHomeTimeline();
 
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // your code to refresh the list here
+                // make sure you call swipeRefreshLayout.setRefreshing(false)
+                // once the network request has completed successfully
+                fetchTimelineAsync(0);
+            }
+        });
+        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -68,6 +85,29 @@ public class TimelineActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    public void fetchTimelineAsync(int page) {
+        client.getHomeTimeline(new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json) {
+                tweetsAdapter.clear();
+                JSONArray results = json.jsonArray;
+                try {
+                    tweetsAdapter.addAll(Tweet.fromJsonArray(results));
+                } catch (JSONException e) {
+                    Log.d(TAG, "Error populating home timeline (fetchTimelineAsync): " + e);
+                }
+
+                swipeRefreshLayout.setRefreshing(false);
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+                Log.d("Debug", "fetch timeline error: " + throwable.toString());
+            }
+        });
     }
 
     private void populateHomeTimeline() {

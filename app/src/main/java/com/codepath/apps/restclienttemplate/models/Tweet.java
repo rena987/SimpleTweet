@@ -1,6 +1,7 @@
 package com.codepath.apps.restclienttemplate.models;
 
 import android.text.format.DateUtils;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,6 +28,11 @@ public class Tweet {
         tweet.body = jsonObject.getString("text");
         tweet.createdAt = jsonObject.getString("created_at");
         tweet.user = User.fromJson(jsonObject.getJSONObject("user"));
+
+        if (jsonObject.getJSONObject("entities").getJSONArray("urls").length() > 0) {
+            tweet.body = tweet.body + " " + jsonObject.getJSONObject("entities").getJSONArray("urls").getJSONObject(0).getString("url");
+        }
+
         return tweet;
     }
 
@@ -50,6 +56,7 @@ public class Tweet {
     public User getUser() {
         return user;
     }
+
 
     public static String getRelativeTimeAgo(String rawJsonDate) {
         String twitterFormat = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";
