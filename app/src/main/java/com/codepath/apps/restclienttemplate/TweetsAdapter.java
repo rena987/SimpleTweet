@@ -1,25 +1,36 @@
 package com.codepath.apps.restclienttemplate;
 
 import android.content.Context;
+import android.content.Intent;
+import android.media.Image;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
+import com.codepath.apps.restclienttemplate.databinding.ItemTweetBinding;
 import com.codepath.apps.restclienttemplate.models.Tweet;
+import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
+import com.github.scribejava.apis.TwitterApi;
 
 import org.jetbrains.annotations.NotNull;
+import org.parceler.Parcels;
 
 import java.util.List;
 
+import okhttp3.Headers;
+
 public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder> {
 
+    TwitterClient client;
     List<Tweet> tweets;
     Context context;
 
@@ -61,25 +72,38 @@ public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        ImageView ivProfileImage;
-        TextView tvScreenName;
-        TextView tvBody;
-        TextView tvTimestamp;
+        ItemTweetBinding binding;
+
 
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
 
-            ivProfileImage = itemView.findViewById(R.id.ivProfileImage);
-            tvScreenName = itemView.findViewById(R.id.tvScreenName);
-            tvBody = itemView.findViewById(R.id.tvBody);
-            tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
+            binding = ItemTweetBinding.bind(itemView);
         }
 
         public void bind(Tweet tweet) {
-            tvBody.setText(tweet.getBody());
-            tvScreenName.setText(tweet.getUser().getScreenName());
-            Glide.with(context).load(tweet.getUser().getProfileImageUrl()).into(ivProfileImage);
-            tvTimestamp.setText(tweet.getCreatedAt());
+            binding.tvBody.setText(tweet.getBody());
+            binding.tvScreenName.setText("@" + tweet.getUser().getScreenName());
+            Glide.with(context).load(tweet.getUser().getProfileImageUrl()).circleCrop().into(binding.ivProfileImage);
+            binding.tvTimestamp.setText(tweet.getCreatedAt());
+            binding.tvName.setText(tweet.getUser().getName());
+            binding.tvNumOfLikes.setText("" + tweet.getNumOfLikes());
+            binding.tvNumOfRetweets.setText("" + tweet.getNumOfRetweets());
+            Glide.with(context).clear(binding.ivEmbedImage);
+            if (tweet.getMediaUrl() != "") {
+                Glide.with(context).load(tweet.getMediaUrl()).into(binding.ivEmbedImage);
+            }
+
+            binding.tvBody.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(context, DetailsActivity.class);
+                    intent.putExtra("tweet", Parcels.wrap(tweet));
+                    context.startActivity(intent);
+                }
+            });
+
+
         }
     }
 }

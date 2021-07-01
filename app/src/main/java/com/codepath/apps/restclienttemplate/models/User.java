@@ -7,6 +7,7 @@ import org.parceler.Parcel;
 @Parcel
 public class User {
 
+    public long id;
     public String name;
     public String screenName;
     public String profileImageUrl;
@@ -18,6 +19,7 @@ public class User {
         user.name = jsonObject.getString("name");
         user.screenName = jsonObject.getString("screen_name");
         user.profileImageUrl = jsonObject.getString("profile_image_url_https");
+        user.id = jsonObject.getLong("id");
         return user;
     }
 
@@ -32,4 +34,6 @@ public class User {
     public String getProfileImageUrl() {
         return profileImageUrl;
     }
+
+    public long getId() { return id; }
 }

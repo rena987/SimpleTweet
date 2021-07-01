@@ -17,20 +17,34 @@ import java.util.Locale;
 @Parcel
 public class Tweet {
 
+    public long id;
     public String body;
     public String createdAt;
     public User user;
+    public String mediaUrl;
+    public int numOfLikes;
+    public int numOfRetweets;
+    public boolean favorited;
+    public boolean retweeted;
 
     public Tweet() { }
 
     public static Tweet fromJson(JSONObject jsonObject) throws JSONException {
         Tweet tweet = new Tweet();
+        tweet.id = jsonObject.getLong("id");
         tweet.body = jsonObject.getString("text");
         tweet.createdAt = jsonObject.getString("created_at");
         tweet.user = User.fromJson(jsonObject.getJSONObject("user"));
+        tweet.numOfLikes = jsonObject.getInt("favorite_count");
+        tweet.numOfRetweets = jsonObject.getInt("retweet_count");
+        tweet.favorited = jsonObject.getBoolean("favorited");
+        tweet.retweeted = jsonObject.getBoolean("retweeted");
 
-        if (jsonObject.getJSONObject("entities").getJSONArray("urls").length() > 0) {
-            tweet.body = tweet.body + " " + jsonObject.getJSONObject("entities").getJSONArray("urls").getJSONObject(0).getString("url");
+        tweet.mediaUrl = "";
+
+        JSONObject entities = jsonObject.getJSONObject("entities");
+        if (entities.has("media")) {
+            tweet.mediaUrl = entities.getJSONArray("media").getJSONObject(0).getString("media_url_https");
         }
 
         return tweet;
@@ -57,6 +71,29 @@ public class Tweet {
         return user;
     }
 
+    public String getMediaUrl() {
+        return mediaUrl;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public int getNumOfLikes() {
+        return numOfLikes;
+    }
+
+    public int getNumOfRetweets() {
+        return numOfRetweets;
+    }
+
+    public boolean isFavorited() {
+        return favorited;
+    }
+
+    public boolean isRetweeted() {
+        return retweeted;
+    }
 
     public static String getRelativeTimeAgo(String rawJsonDate) {
         String twitterFormat = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".DetailsActivity">
+
+
+        <ImageView
+            android:id="@+id/dtProfilePic"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginTop="50dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
+            tools:srcCompat="@tools:sample/avatars" />
+
+        <TextView
+            android:id="@+id/dtName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/dtProfilePic"
+            android:layout_marginBottom="8dp"
+            android:layout_toEndOf="@+id/dtProfilePic"
+            tools:text="Serena Behera" />
+
+        <TextView
+            android:id="@+id/dtScreenName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/dtName"
+            android:layout_toEndOf="@+id/dtProfilePic"
+            tools:text="/@rena_9374" />
+
+        <TextView
+            android:id="@+id/dtBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/dtProfilePic"
+            android:layout_marginStart="50dp"
+            android:layout_marginBottom="50dp"
+            tools:text="Hi frens this is my tweety tweet tweet" />
+
+        <ImageView
+            android:id="@+id/dtLike"
+            android:layout_below="@id/dtBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
+            android:layout_marginStart="50dp"
+            android:clickable="true"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_vector_heart_stroke"
+            android:focusable="true" />
+
+        <ImageView
+            android:id="@+id/dtRetweet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/dtBody"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="5dp"
+            android:layout_toRightOf="@id/dtLike"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_vector_retweet_stroke" />
+
+        <ImageView
+            android:id="@+id/dtReply"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/dtBody"
+            android:layout_marginLeft="30dp"
+            android:layout_toRightOf="@id/dtRetweet"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_vector_messages_stroke" />
+    </RelativeLayout>
+
+</layout>

@@ -2,10 +2,14 @@ package com.codepath.apps.restclienttemplate;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -16,6 +20,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.codepath.apps.restclienttemplate.databinding.ActivityTimelineBinding;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
 
@@ -34,36 +39,39 @@ public class TimelineActivity extends AppCompatActivity {
     public static final int REQUEST_CODE = 23;
     public static final String TAG = "TimelineActivity";
 
+    EndlessRecyclerViewScrollListener scrollListener;
     TwitterClient client;
-    SwipeRefreshLayout swipeRefreshLayout;
-    RecyclerView rvTweets;
     List<Tweet> tweets;
     TweetsAdapter tweetsAdapter;
     LinearLayoutManager linearLayoutManager;
-    Button btnLogout;
+    MenuItem miActionProgressItem;
+
+    ActivityTimelineBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_timeline);
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_timeline);
+
+        setSupportActionBar(binding.toolbar);
+
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setIcon(R.drawable.ic_vector_home);
+        getSupportActionBar().setTitle("     Home");
 
         tweets = new ArrayList<>();
-        btnLogout = findViewById(R.id.btnLogout);
-        swipeRefreshLayout = findViewById(R.id.swipeContainer);
         client = TwitterApp.getRestClient(this);
 
-        // Find the recycler view
-        rvTweets = findViewById(R.id.rvTweets);
         // Init the list of tweets and adapter
         tweetsAdapter = new TweetsAdapter(this, tweets);
         linearLayoutManager = new LinearLayoutManager(this);
-        // Recycler view setup: layout managerand the adapter
-        rvTweets.setAdapter(tweetsAdapter);
-        rvTweets.setLayoutManager(linearLayoutManager);
+        // Recycler view setup: layout manager and the adapter
+        binding.rvTweets.setAdapter(tweetsAdapter);
+        binding.rvTweets.setLayoutManager(linearLayoutManager);
 
         populateHomeTimeline();
 
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        binding.swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 // your code to refresh the list here
@@ -72,25 +80,57 @@ public class TimelineActivity extends AppCompatActivity {
                 fetchTimelineAsync(0);
             }
         });
-        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
+        binding.swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
                 android.R.color.holo_green_light,
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
 
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onLogoutButton();
-            }
-        });
 
+        /*scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                loadNextDataFromApi(page);
+            }
+        };
+
+        rvTweets.addOnScrollListener(scrollListener);*/
 
     }
 
-    public void fetchTimelineAsync(int page) {
-        client.getHomeTimeline(new JsonHttpResponseHandler() {
+    public void loadNextDataFromApi(int offset) {
+        // Send an API request to retrieve appropriate paginated data
+        //  --> Send the request including an offset value (i.e `page`) as a query parameter.
+        client.getHomeTimeline(offset, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Headers headers, JSON json) {
+                Log.d(TAG, "Succesful timeline fetch for endless scrolling");
+                JSONArray results = json.jsonArray;
+
+                try {
+                    int size = tweetsAdapter.getItemCount();
+                    tweets.addAll(Tweet.fromJsonArray(results));
+                    tweetsAdapter.notifyItemRangeInserted(size, tweets.size() - 1);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+                Log.d(TAG, "Endless scrolling fetching error: " + throwable);
+            }
+        });
+        //  --> Deserialize and construct new model objects from the API response
+        //  --> Append the new data objects to the existing set of items inside the array of items
+        //  --> Notify the adapter of the new items made with `notifyItemRangeInserted()`
+    }
+
+    public void fetchTimelineAsync(int page) {
+        client.getHomeTimeline(page, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json) {
+                tweets.clear();
                 tweetsAdapter.clear();
                 JSONArray results = json.jsonArray;
                 try {
@@ -99,7 +139,7 @@ public class TimelineActivity extends AppCompatActivity {
                     Log.d(TAG, "Error populating home timeline (fetchTimelineAsync): " + e);
                 }
 
-                swipeRefreshLayout.setRefreshing(false);
+                binding.swipeContainer.setRefreshing(false);
 
             }
 
@@ -111,9 +151,11 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
     private void populateHomeTimeline() {
-        client.getHomeTimeline(new JsonHttpResponseHandler() {
+        Log.d(TAG, "tweets: " + tweets);
+        client.getHomeTimeline(0, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Headers headers, JSON json) {
+                hideProgressBar();
                 Log.d(TAG, "Fetching Home Timeline Success: " + json);
                 JSONArray results = json.jsonArray;
                 try {
@@ -151,6 +193,8 @@ public class TimelineActivity extends AppCompatActivity {
             Intent intent = new Intent(this, ComposeActivity.class);
             startActivityForResult(intent, REQUEST_CODE);
             return true; // false to allow normal menu processing to proceed but true to consume it here
+        } else if (item.getItemId() == R.id.logout) {
+            onLogoutButton();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -164,8 +208,26 @@ public class TimelineActivity extends AppCompatActivity {
             tweets.add(0, tweet);
             // notify adapter
             tweetsAdapter.notifyItemInserted(0);
-            rvTweets.smoothScrollToPosition(0);
+            binding.rvTweets.smoothScrollToPosition(0);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        miActionProgressItem = menu.findItem(R.id.miActionProgress);
+        showProgressBar();
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    public void showProgressBar() {
+        // Show progress item
+        miActionProgressItem.setVisible(true);
+    }
+
+    public void hideProgressBar() {
+        // Hide progress item
+        miActionProgressItem.setVisible(false);
+    }
+
 }
