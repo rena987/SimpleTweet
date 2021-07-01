@@ -62,14 +62,13 @@
 
         <ImageView
             android:id="@+id/ivEmbedImage"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tvBody"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:layout_toStartOf="@+id/tvTimestamp"
             android:layout_toEndOf="@+id/ivProfileImage"
-            android:scaleType="center"
             tools:srcCompat="@tools:sample/avatars" />
 
 
