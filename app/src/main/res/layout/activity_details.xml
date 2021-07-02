@@ -44,6 +44,8 @@
             android:layout_below="@+id/dtProfilePic"
             android:layout_marginStart="50dp"
             android:layout_marginBottom="50dp"
+            android:autoLink="all"
+            android:linksClickable="true"
             tools:text="Hi frens this is my tweety tweet tweet" />
 
         <ImageView
