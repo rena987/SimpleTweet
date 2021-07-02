@@ -3,6 +3,12 @@ package com.codepath.apps.restclienttemplate.models;
 import android.text.format.DateUtils;
 import android.util.Log;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.ForeignKey;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,17 +20,39 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@Entity(foreignKeys = @ForeignKey(entity = User.class, parentColumns = "id", childColumns = "user_id"))
 @Parcel
 public class Tweet {
 
+    @ColumnInfo
+    @PrimaryKey
     public long id;
+
+    @ColumnInfo
     public String body;
+
+    @ColumnInfo
     public String createdAt;
+
+    @ColumnInfo
+    public long user_id;
+
+    @Ignore
     public User user;
+
+    @ColumnInfo
     public String mediaUrl;
+
+    @ColumnInfo
     public int numOfLikes;
+
+    @ColumnInfo
     public int numOfRetweets;
+
+    @ColumnInfo
     public boolean favorited;
+
+    @ColumnInfo
     public boolean retweeted;
 
     public Tweet() { }
@@ -35,6 +63,7 @@ public class Tweet {
         tweet.body = jsonObject.getString("text");
         tweet.createdAt = jsonObject.getString("created_at");
         tweet.user = User.fromJson(jsonObject.getJSONObject("user"));
+        tweet.user_id = User.fromJson(jsonObject.getJSONObject("user")).id;
         tweet.numOfLikes = jsonObject.getInt("favorite_count");
         tweet.numOfRetweets = jsonObject.getInt("retweet_count");
         tweet.favorited = jsonObject.getBoolean("favorited");
