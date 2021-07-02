@@ -14,6 +14,9 @@ import com.codepath.apps.restclienttemplate.databinding.ActivityDetailsBinding;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.parceler.Parcels;
 
 import okhttp3.Headers;
@@ -29,6 +32,8 @@ public class DetailsActivity extends AppCompatActivity {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_details);
 
         Tweet tweet = Parcels.unwrap(getIntent().getParcelableExtra("tweet"));
+        populateFollowersList(tweet);
+        populateFollowingList(tweet);
 
         Glide.with(this).load(tweet.getUser().getProfileImageUrl()).into(binding.dtProfilePic);
         binding.dtScreenName.setText("@" + tweet.getUser().getScreenName());
@@ -67,6 +72,67 @@ public class DetailsActivity extends AppCompatActivity {
                 RetweetOrUnRetweet(tweet);
             }
         });
+    }
+
+    private void populateFollowingList(Tweet tweet) {
+
+        TwitterClient client = TwitterApp.getRestClient(this);
+
+        client.getFollowingList(tweet.user.id, tweet.user.screenName, 15, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json) {
+                Log.d("DetailsActivity", "Succesfuly populated: " + json);
+                JSONObject jsonObject = json.jsonObject;
+                try {
+                    JSONArray users = jsonObject.getJSONArray("users");
+                    String following = "Following: ";
+                    for (int i = 0; i < users.length(); i++) {
+                        following = following + users.getJSONObject(i).getString("screen_name") + ", ";
+                    }
+                    binding.tvFollowing.setText(following + "....");
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+                Log.d("DetailsActivity", "Failed populated: " + throwable);
+            }
+        });
+
+    }
+
+    private void populateFollowersList(Tweet tweet) {
+        TwitterClient client = TwitterApp.getRestClient(this);
+
+        client.getFollowersList(tweet.user.id, tweet.user.screenName, 15, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json) {
+                Log.d("DetailsActivity", "Succesfuly populated: " + json);
+                JSONObject jsonObject = json.jsonObject;
+                try {
+                    JSONArray users = jsonObject.getJSONArray("users");
+                    String followers = "Followers: ";
+                    for (int i = 0; i < users.length(); i++) {
+                        followers = followers + users.getJSONObject(i).getString("screen_name") + ", ";
+                    }
+                    binding.tvFollowers.setText(followers + "....");
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+                Log.d("DetailsActivity", "Failed populated: " + throwable);
+            }
+        });
+
     }
 
     public void LikeOrUnlikeTweet(Tweet tweet) {
